@@ -3,17 +3,18 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Autodesk.AutoCAD.Interop;
 using Autodesk.AutoCAD.Interop.Common;
-using System.IO;
 
 namespace ChangeMultipleTextsIntoMultipleDrawings
 {
 	class Program {
 		private static string[] arquivosDWG;
-		private static string arquivoTXT, numeroAntigo, numeroNovo;
+		//private static string arquivoTXT, numeroAntigo, numeroNovo;
 
 		[STAThread]
 		public static void Main(string[] args) {
 			SelectFilesDWG();
+			
+			/*
 			SelectFileTXT();
 			
 			string[] linhas = File.ReadAllLines(arquivoTXT);
@@ -21,6 +22,7 @@ namespace ChangeMultipleTextsIntoMultipleDrawings
 				numeroAntigo = linhas[i].Split(';')[0];
 				numeroNovo = linhas[i].Split(';')[1];
 			}
+			*/
 
             AcadApplication acApp = null;
 
@@ -48,56 +50,70 @@ namespace ChangeMultipleTextsIntoMultipleDrawings
                 selset.Select(AcSelect.acSelectionSetAll, null, null, ftype, fdata);
 
                 foreach (IAcadText txt in selset) {
+                	double[] teste = txt.InsertionPoint as double[];
+                	
+                	if (teste[0] > 23118 && teste[0] < 23289 && teste[1] > 227 && teste[1] < 376 && txt.TextString == "0A") {
+						txt.TextString = "00";
+                	}
+                	
+                	/*
+                	if (txt.InsertionPoint) {
+                		//
+                	}*/
+                	
+                	/*
                 	foreach (var value in linhas) {
                 		if (txt.TextString == numeroAntigo) {
 							txt.TextString = numeroNovo;
                 		}
                 	}
+                	*/
                 }
                 
                 double[] textLocation = new double[3];
-				textLocation[0] = 7278.6720;
-				textLocation[1] = 635.8620;
+				textLocation[0] = 20180.7576;
+				textLocation[1] = 2475.0000;
 				textLocation[2] = 0;
-				var text = acApp.ActiveDocument.ModelSpace.AddText("0B", textLocation, 46.3125);
+				var text = acApp.ActiveDocument.ModelSpace.AddText("00", textLocation, 38.6909);
 				text.Alignment = AcAlignment.acAlignmentMiddle;
 				text.TextAlignmentPoint = textLocation;
-				text.StyleName = "style2";
+				text.StyleName = "ROMANS";
 
-				textLocation[0] = 7469.2051;
-				textLocation[1] = 635.8620;
-				var text1 = acApp.ActiveDocument.ModelSpace.AddText("ALTERADO NÚMERO ERB1", textLocation, 46.3125);
-				text1.Alignment = AcAlignment.acAlignmentMiddleLeft;
+				textLocation[0] = 20456.5152;
+				textLocation[1] = 2475.0000;
+				var text1 = acApp.ActiveDocument.ModelSpace.AddText("02/10/18", textLocation, 38.6909);
+				text1.Alignment = AcAlignment.acAlignmentMiddle;
 				text1.TextAlignmentPoint = textLocation;
-				text1.StyleName = "style2";
+				text1.StyleName = "ROMANS";
 
-				textLocation[0] = 9895.2593;
-				textLocation[1] = 635.8620;
-				var text2 = acApp.ActiveDocument.ModelSpace.AddText("FBS", textLocation, 46.3125);
-				text2.Alignment = AcAlignment.acAlignmentMiddle;
+				textLocation[0] = 20699.1182;
+				textLocation[1] = 2475.0000;
+				var text2 = acApp.ActiveDocument.ModelSpace.AddText("Documento Aprovado", textLocation, 38.6909);
+				text2.Alignment = AcAlignment.acAlignmentMiddleLeft;
+				
 				text2.TextAlignmentPoint = textLocation;
-				text2.StyleName = "style2";
+				text2.StyleName = "ROMANS";
 
-				textLocation[0] = 10262.7772;
-				textLocation[1] = 635.8620;
-				var text3 = acApp.ActiveDocument.ModelSpace.AddText("HSJ", textLocation, 46.3125);
+				textLocation[0] = 22819.8955;
+				textLocation[1] = 2475.0000;
+				var text3 = acApp.ActiveDocument.ModelSpace.AddText("FBS", textLocation, 38.6909);
 				text3.Alignment = AcAlignment.acAlignmentMiddle;
 				text3.TextAlignmentPoint = textLocation;
-				text3.StyleName = "style2";
+				text3.StyleName = "ROMANS";
 
-				textLocation[0] = 10630.2951;
-				textLocation[1] = 635.8620;
-				var text4 = acApp.ActiveDocument.ModelSpace.AddText("JRS", textLocation, 46.3125);
+				textLocation[0] = 23123.9288;
+				textLocation[1] = 2475.0000;
+				var text4 = acApp.ActiveDocument.ModelSpace.AddText("HSJ", textLocation, 38.6909);
 				text4.Alignment = AcAlignment.acAlignmentMiddle;
 				text4.TextAlignmentPoint = textLocation;
-				text4.StyleName = "style2";
+				text4.StyleName = "ROMANS";
 
-				textLocation[0] = 10997.8131;
-				textLocation[1] = 635.8620;
-				var text5 = acApp.ActiveDocument.ModelSpace.AddText("19/09/18", textLocation, 46.3125);
+				textLocation[0] = 23427.9727;
+				textLocation[1] = 2475.0000;
+				var text5 = acApp.ActiveDocument.ModelSpace.AddText("RTO", textLocation, 38.6909);
 				text5.Alignment = AcAlignment.acAlignmentMiddle;
 				text5.TextAlignmentPoint = textLocation;
-				text5.StyleName = "style2";
+				text5.StyleName = "ROMANS";
 
 				acApp.ZoomExtents();
 				doc.Save();
@@ -122,6 +138,7 @@ namespace ChangeMultipleTextsIntoMultipleDrawings
             }
         }
 		
+		/*
         static void SelectFileTXT() {
             // Displays an OpenFileDialog so the user can select a Cursor.
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -138,5 +155,6 @@ namespace ChangeMultipleTextsIntoMultipleDrawings
 				Console.ReadKey();
             }
         }
+		*/
 	}
 }
