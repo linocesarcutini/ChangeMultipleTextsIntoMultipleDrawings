@@ -1,67 +1,111 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Interop;
 using Autodesk.AutoCAD.Interop.Common;
 
 namespace ChangeMultipleTextsIntoMultipleDrawings
 {
-	class Program {
-		private static string[] arquivosDWG;
-		//private static string arquivoTXT, numeroAntigo, numeroNovo;
+    class Program
+    {
+        private static string[] arquivosDWG;
+        private static string arquivoTXT, numeroAntigo, numeroNovo;
 
-		[STAThread]
-		public static void Main(string[] args) {
-			SelectFilesDWG();
-			
-			/*
-			SelectFileTXT();
-			
-			string[] linhas = File.ReadAllLines(arquivoTXT);
-			for (int i = 0; i < linhas.Length; i++) {
-				numeroAntigo = linhas[i].Split(';')[0];
-				numeroNovo = linhas[i].Split(';')[1];
-			}
-			*/
+        [STAThread]
+        public static void Main(string[] args)
+        {
+            SelectFilesDWG();
+
+            SelectFileTXT();
+
+            string[] linhas = File.ReadAllLines(arquivoTXT);
+            for (int i = 0; i < linhas.Length; i++)
+            {
+                numeroAntigo = linhas[i].Split(';')[0];
+                numeroNovo = linhas[i].Split(';')[1];
+            }
 
             AcadApplication acApp = null;
 
-            try {
+            try
+            {
                 acApp = Marshal.GetActiveObject("AutoCAD.Application") as AcadApplication;
-            } catch {
+            }
+            catch
+            {
                 MessageBox.Show("Não foi possível abrir o AutoCAD");
             }
-			
-        	foreach (var desenho in arquivosDWG) {
-        		AcadDocument doc;
 
-                try {
+            foreach (var desenho in arquivosDWG)
+            {
+                AcadDocument doc;
+
+                try
+                {
                     doc = acApp.Documents.Open(desenho, false, string.Empty);
                     AcadModelSpace modelSpace = doc.ModelSpace;
-                } catch (Exception) {
+                }
+                catch (Exception)
+                {
                     MessageBox.Show("Não foi possível abrir o desenho {0}", desenho);
                     break;
                 }
 
-                AcadSelectionSet selset = null;
-                selset = doc.SelectionSets.Add("texto");
-                short[] ftype = { 0 };
-                object[] fdata = { "TEXT" };
-                selset.Select(AcSelect.acSelectionSetAll, null, null, ftype, fdata);
+                Document document = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
+                Editor editor = document.Editor;
+                Database dataBase = document.Database;
 
-                foreach (IAcadText txt in selset) {
-                	double[] teste = txt.InsertionPoint as double[];
-                	
-                	if (teste[0] > 23118 && teste[0] < 23289 && teste[1] > 227 && teste[1] < 376 && txt.TextString == "0A") {
-						txt.TextString = "00";
-                	}
-                	
-                	/*
+                TypedValue[] values = new TypedValue[]
+                {
+                new TypedValue(0, "TEXT,MTEXT")
+                };
+
+                SelectionFilter filter = new SelectionFilter(values);
+                PromptSelectionResult result = editor.SelectAll();
+
+                if (result.Status != PromptStatus.OK) return;
+
+                try
+                {
+                    using (Transaction transaction = dataBase.TransactionManager.StartTransaction())
+                    {
+                        SelectionSet sset = result.Value;
+
+                        for (int i = 0; i <= sset.Count - 1; i++)
+                        {
+                            SelectedObject selobj = sset[i];
+
+                            DBObject obj = transaction.GetObject(selobj.ObjectId, OpenMode.ForWrite, false) as DBObject;
+
+
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+
+                foreach (IAcadText txt in selset)
+                {
+                    double[] teste = txt.InsertionPoint as double[];
+
+                    if (teste[0] > 23118 && teste[0] < 23289 && teste[1] > 227 && teste[1] < 376 && txt.TextString == "0A")
+                    {
+                        txt.TextString = "00";
+                    }
+
+                    /*
                 	if (txt.InsertionPoint) {
                 		//
                 	}*/
-                	
-                	/*
+
+                    /*
                 	foreach (var value in linhas) {
                 		if (txt.TextString == numeroAntigo) {
 							txt.TextString = numeroNovo;
@@ -69,59 +113,60 @@ namespace ChangeMultipleTextsIntoMultipleDrawings
                 	}
                 	*/
                 }
-                
-                double[] textLocation = new double[3];
-				textLocation[0] = 20180.7576;
-				textLocation[1] = 2475.0000;
-				textLocation[2] = 0;
-				var text = acApp.ActiveDocument.ModelSpace.AddText("00", textLocation, 38.6909);
-				text.Alignment = AcAlignment.acAlignmentMiddle;
-				text.TextAlignmentPoint = textLocation;
-				text.StyleName = "ROMANS";
 
-				textLocation[0] = 20456.5152;
-				textLocation[1] = 2475.0000;
-				var text1 = acApp.ActiveDocument.ModelSpace.AddText("02/10/18", textLocation, 38.6909);
-				text1.Alignment = AcAlignment.acAlignmentMiddle;
-				text1.TextAlignmentPoint = textLocation;
-				text1.StyleName = "ROMANS";
+                //double[] textLocation = new double[3];
+                //textLocation[0] = 20180.7576;
+                //textLocation[1] = 2475.0000;
+                //textLocation[2] = 0;
+                //var text = acApp.ActiveDocument.ModelSpace.AddText("00", textLocation, 38.6909);
+                //text.Alignment = AcAlignment.acAlignmentMiddle;
+                //text.TextAlignmentPoint = textLocation;
+                //text.StyleName = "ROMANS";
 
-				textLocation[0] = 20699.1182;
-				textLocation[1] = 2475.0000;
-				var text2 = acApp.ActiveDocument.ModelSpace.AddText("Documento Aprovado", textLocation, 38.6909);
-				text2.Alignment = AcAlignment.acAlignmentMiddleLeft;
-				
-				text2.TextAlignmentPoint = textLocation;
-				text2.StyleName = "ROMANS";
+                //textLocation[0] = 20456.5152;
+                //textLocation[1] = 2475.0000;
+                //var text1 = acApp.ActiveDocument.ModelSpace.AddText("02/10/18", textLocation, 38.6909);
+                //text1.Alignment = AcAlignment.acAlignmentMiddle;
+                //text1.TextAlignmentPoint = textLocation;
+                //text1.StyleName = "ROMANS";
 
-				textLocation[0] = 22819.8955;
-				textLocation[1] = 2475.0000;
-				var text3 = acApp.ActiveDocument.ModelSpace.AddText("FBS", textLocation, 38.6909);
-				text3.Alignment = AcAlignment.acAlignmentMiddle;
-				text3.TextAlignmentPoint = textLocation;
-				text3.StyleName = "ROMANS";
+                //textLocation[0] = 20699.1182;
+                //textLocation[1] = 2475.0000;
+                //var text2 = acApp.ActiveDocument.ModelSpace.AddText("Documento Aprovado", textLocation, 38.6909);
+                //text2.Alignment = AcAlignment.acAlignmentMiddleLeft;
 
-				textLocation[0] = 23123.9288;
-				textLocation[1] = 2475.0000;
-				var text4 = acApp.ActiveDocument.ModelSpace.AddText("HSJ", textLocation, 38.6909);
-				text4.Alignment = AcAlignment.acAlignmentMiddle;
-				text4.TextAlignmentPoint = textLocation;
-				text4.StyleName = "ROMANS";
+                //text2.TextAlignmentPoint = textLocation;
+                //text2.StyleName = "ROMANS";
 
-				textLocation[0] = 23427.9727;
-				textLocation[1] = 2475.0000;
-				var text5 = acApp.ActiveDocument.ModelSpace.AddText("RTO", textLocation, 38.6909);
-				text5.Alignment = AcAlignment.acAlignmentMiddle;
-				text5.TextAlignmentPoint = textLocation;
-				text5.StyleName = "ROMANS";
+                //textLocation[0] = 22819.8955;
+                //textLocation[1] = 2475.0000;
+                //var text3 = acApp.ActiveDocument.ModelSpace.AddText("FBS", textLocation, 38.6909);
+                //text3.Alignment = AcAlignment.acAlignmentMiddle;
+                //text3.TextAlignmentPoint = textLocation;
+                //text3.StyleName = "ROMANS";
 
-				acApp.ZoomExtents();
-				doc.Save();
-				doc.Close();
+                //textLocation[0] = 23123.9288;
+                //textLocation[1] = 2475.0000;
+                //var text4 = acApp.ActiveDocument.ModelSpace.AddText("HSJ", textLocation, 38.6909);
+                //text4.Alignment = AcAlignment.acAlignmentMiddle;
+                //text4.TextAlignmentPoint = textLocation;
+                //text4.StyleName = "ROMANS";
+
+                //textLocation[0] = 23427.9727;
+                //textLocation[1] = 2475.0000;
+                //var text5 = acApp.ActiveDocument.ModelSpace.AddText("RTO", textLocation, 38.6909);
+                //text5.Alignment = AcAlignment.acAlignmentMiddle;
+                //text5.TextAlignmentPoint = textLocation;
+                //text5.StyleName = "ROMANS";
+
+                acApp.ZoomExtents();
+                doc.Save();
+                doc.Close();
             }
-		}
+        }
 
-        static void SelectFilesDWG() {
+        static void SelectFilesDWG()
+        {
             // Displays an OpenFileDialog so the user can select a Cursor.
             OpenFileDialog openFileDialog2 = new OpenFileDialog();
             openFileDialog2.Filter = "Drawing Files|*.dwg";
@@ -129,17 +174,20 @@ namespace ChangeMultipleTextsIntoMultipleDrawings
             openFileDialog2.RestoreDirectory = true;
             openFileDialog2.Multiselect = true;
 
-            if (openFileDialog2.ShowDialog() == DialogResult.OK) {
+            if (openFileDialog2.ShowDialog() == DialogResult.OK)
+            {
                 // Guarda a lista dos caminhos completos dos arquivos selecionados
                 arquivosDWG = openFileDialog2.FileNames;
-            } else {
-				Console.WriteLine("Arquivos não selecionados!");
-				Console.ReadKey();
+            }
+            else
+            {
+                Console.WriteLine("Arquivos não selecionados!");
+                Console.ReadKey();
             }
         }
-		
-		/*
-        static void SelectFileTXT() {
+
+        static void SelectFileTXT()
+        {
             // Displays an OpenFileDialog so the user can select a Cursor.
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "TXT Files|*.txt";
@@ -147,14 +195,16 @@ namespace ChangeMultipleTextsIntoMultipleDrawings
             openFileDialog.RestoreDirectory = true;
             openFileDialog.Multiselect = true;
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK) {
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
                 // Guarda a lista dos caminhos completos dos arquivos selecionados
                 arquivoTXT = openFileDialog.FileName;
-            } else {
-				Console.WriteLine("Arquivo não selecionado!");
-				Console.ReadKey();
+            }
+            else
+            {
+                Console.WriteLine("Arquivo não selecionado!");
+                Console.ReadKey();
             }
         }
-		*/
-	}
+    }
 }
